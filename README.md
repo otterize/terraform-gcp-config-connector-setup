@@ -1,7 +1,7 @@
 # Setup
 This repository houses a Terraform module required for setting up Otterize in your infrastructure using Terraform, on GCP IAM.
 
-To use this Terraform module, see the Terraform Registry: https://registry.terraform.io/modules/otterize/otterize-gcp-iam/gcp/latest
+To use this Terraform module, see the Terraform Registry: https://registry.terraform.io/modules/otterize/config-connector-setup/gcp/latest
 
 ## Usage
 1. Allow the terraform script to access gcloud credentials: [Terraform Authentication](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference#authentication)
@@ -11,7 +11,7 @@ To use this Terraform module, see the Terraform Registry: https://registry.terra
     module "otterize-gcp-iam" {
       source  = "otterize/otterize-gcp-iam/gcp"
       version = "0.1.0"
-      # insert the 3 required variables here
+      # insert the 5 required variables here
     }
     ```
 
