@@ -1,7 +1,14 @@
 # Create a service account for Config Connector
 resource "google_service_account" "config_connector_sa" {
+  count        = var.create_config_connector_sa ? 1 : 0
   account_id   = var.config_connector_sa_name
   display_name = "Config Connector Service Account"
+}
+
+# If the service account was not created, retrieve the name and email of the existing service account
+locals {
+  config_connector_sa_name = length(google_service_account.config_connector_sa) > 0 ? one(google_service_account.config_connector_sa[*].name) : one(data.google_service_account.config_connector_sa[*].name)
+  config_connector_sa_email = length(google_service_account.config_connector_sa) > 0 ? one(google_service_account.config_connector_sa[*].email) : one(data.google_service_account.config_connector_sa[*].email)
 }
 
 # Add the required roles to the service account at the project level
@@ -14,17 +21,19 @@ resource "google_project_iam_member" "role_bindings" {
   ])
   project = var.gcp_project_id
   role    = each.value
-  member  = "serviceAccount:${google_service_account.config_connector_sa.email}"
+  member  = "serviceAccount:${local.config_connector_sa_email}"
 }
 
 # Add the 'roles/iam.workloadIdentityUser' role to the service account for workload identity
 resource "google_service_account_iam_member" "workload_identity_binding" {
-  service_account_id = google_service_account.config_connector_sa.name
+  count = var.create_config_connector_sa ? 1 : 0
+  service_account_id = local.config_connector_sa_name
   role               = "roles/iam.workloadIdentityUser"
   member             = "serviceAccount:${var.gcp_project_id}.svc.id.goog[cnrm-system/cnrm-controller-manager]"
 }
 
 resource "kubectl_manifest" "config_connector_manifest" {
+  count = var.create_config_connector_sa ? 1 : 0
   yaml_body = <<-EOT
     apiVersion: core.cnrm.cloud.google.com/v1beta1
     kind: ConfigConnector
@@ -32,7 +41,7 @@ resource "kubectl_manifest" "config_connector_manifest" {
       name: configconnector.core.cnrm.cloud.google.com
     spec:
       mode: cluster
-      googleServiceAccount: "${google_service_account.config_connector_sa.email}"
+      googleServiceAccount: "${local.config_connector_sa_email}"
   EOT
 
   depends_on = [data.google_container_cluster.existing_cluster]
