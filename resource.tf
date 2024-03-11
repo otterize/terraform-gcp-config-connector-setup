@@ -24,6 +24,13 @@ resource "google_project_iam_member" "role_bindings" {
   member  = "serviceAccount:${local.config_connector_sa_email}"
 }
 
+# Enable the required APIs for the project
+resource "google_project_service" "gcp_services" {
+  for_each = toset(var.gcp_service_list)
+  project = var.gcp_project_id
+  service = each.key
+}
+
 # Add the 'roles/iam.workloadIdentityUser' role to the service account for workload identity
 resource "google_service_account_iam_member" "workload_identity_binding" {
   count = var.create_config_connector_sa ? 1 : 0

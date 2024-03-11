@@ -24,3 +24,12 @@ variable "config_connector_sa_name" {
   description = "The name of the service account to be created for Config Connector in the GCP project"
   type        = string
 }
+
+# List of GCP services to enable
+variable "gcp_service_list" {
+  description ="The list of apis necessary for the project"
+  type = list(string)
+  default = [
+    "cloudresourcemanager.googleapis.com"
+  ]
+}
